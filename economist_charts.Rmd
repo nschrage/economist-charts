@@ -1,0 +1,54 @@
+---
+title: "Economist Chart"
+name: Niel Schrage
+date: 4/11/2019
+output: html_notebook
+---
+
+```{r setup, echo=FALSE}
+
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(ggthemes)
+
+```
+
+```{r download_data, message=TRUE, warning=TRUE, paged.print=FALSE, echo=FALSE}
+
+download.file(url = "http://infographics.economist.com/databank/Economist_brexit.csv", destfile = "economist.csv", mode = "wb") 
+
+economist <- read_csv("economist.csv", skip = 3, col_types = cols(
+              Date = col_date(format = "%d/%m/%y"),
+              `% responding right` = col_double(),
+              `% responding wrong` = col_double())) %>% 
+  
+  # data cleaning
+  
+  clean_names() %>% 
+  
+  # makes data easier to work with -- gives us a choice column to look at. 
+  
+  gather(key = "choice", value = "percent", percent_responding_right, percent_responding_wrong)
+
+
+
+```
+
+```{r graphic, echo=FALSE}
+
+economist %>% 
+  ggplot(aes(x = date, y = percent, color = choice), show.legend = FALSE) + 
+  geom_jitter(show.legend = FALSE, alpha = 0.3) +
+  geom_smooth(aes(x = date, y = percent, color = choice), show.legend = FALSE, se = FALSE) +
+  scale_x_date(date_breaks = "12 months", 
+               date_labels = "%Y") +
+  scale_y_continuous(limits = c(38, 50), breaks = seq(38, 50, by = 2)) +
+  labs(title = "Bremorse", 
+       subtitle = "In hindsight, do you think Britain was right or wrong to vote to leave the EU",
+       caption = "NatCen Social Research",
+       y = "% responding") + 
+  theme_economist_white()
+  
+```
+
